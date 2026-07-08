@@ -1,0 +1,58 @@
+import numpy as np
+import time
+np.random.seed(42)
+
+#任务1
+
+prices = np.array([100, 102, 105, 103, 107], dtype=float)
+
+simple_returns = prices[1:] / prices[:-1] - 1
+log_returns = np.log(prices[1:] / prices[:-1])
+
+print("对数收益率:", np.round(np.diff(np.log(prices)), 5))
+print()
+
+#任务2
+days = 100
+
+daily_returns = np.random.normal(loc=0.0005, scale=0.02, size=days)
+prices = 100 * np.exp(np.cumsum(daily_returns))
+
+
+def moving_average_convolve(values, window):
+
+    weights = np.ones(window) / window
+    return np.convolve(values, weights, mode="valid")
+
+
+def moving_average_cumsum(values, window):
+    cumsum = np.cumsum(np.insert(values, 0, 0.0))
+    return (cumsum[window:] - cumsum[:-window]) / window
+
+ma5 = moving_average_convolve(prices, 5)
+ma20 = moving_average_cumsum(prices, 20)
+
+latest_ma5 = ma5[-1]
+latest_ma20 = ma20[-1]
+
+print("最新 MA5:", round(latest_ma5, 2))
+print("最新 MA20:", round(latest_ma20, 2))
+print()
+
+#任务3
+
+n_stocks = 1000
+n_days = 252
+
+market_factor = np.random.normal(loc=0.0003, scale=0.01, size=(1, n_days))
+stock_noise = np.random.normal(loc=0.0, scale=0.015, size=(n_stocks, n_days))
+stock_beta = np.random.uniform(0.5, 1.5, size=(n_stocks, 1))
+returns = stock_beta * market_factor + stock_noise
+
+annual_volatility = returns.std(axis=1, ddof=1) * np.sqrt(252)
+
+correlation_matrix = np.corrcoef(returns)
+
+print("前 5 支股票年化波动率:", np.round(annual_volatility[:5], 4))
+print()
+print("前 3x3 相关系数:\n", np.round(correlation_matrix[:3, :3], 3))
