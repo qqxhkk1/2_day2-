@@ -1,0 +1,63 @@
+import numpy as np
+import time
+np.random.seed(42)
+
+#任务1
+def benchmark(name, func, repeat=3):
+    times = []
+    for _ in range(repeat):
+        start = time.perf_counter()
+        func()
+        end = time.perf_counter()
+        times.append(end - start)
+    print(f"{name:<12} 平均耗时: {np.mean(times):.6f} 秒")
+
+DEMO_MODE = False
+if DEMO_MODE:
+    m, k, n = 200, 400, 300
+else:
+    m, k, n = 1000, 2000, 3000
+
+A = np.random.rand(m, k)
+B = np.random.rand(k, n)
+
+benchmark("np.dot", lambda: np.dot(A, B))
+benchmark("@", lambda: A @ B)
+benchmark("np.matmul", lambda: np.matmul(A, B))
+
+#任务2
+
+n = 1000
+rng = np.random.default_rng(42)
+
+arr_c = rng.random((n, n))
+arr_c = np.ascontiguousarray(arr_c)  # 明确转成 C 顺序：行优先
+arr_f = np.asfortranarray(arr_c)     # 明确转成 F 顺序：列优先
+
+def benchmark_many(name, func, number=100, repeat=5):
+    times = []
+    for _ in range(repeat):
+        start = time.perf_counter()
+        for _ in range(number):
+            func()
+        end = time.perf_counter()
+        times.append((end - start) / number)
+    print(f"{name:<20} 平均每次: {np.mean(times):.8f} 秒")
+
+benchmark_many("C axis=0 列汇总", lambda: arr_c.sum(axis=0), number=3, repeat=5)  # axis=0 表示按列汇总
+benchmark_many("C axis=1 行汇总", lambda: arr_c.sum(axis=1), number=3, repeat=5)  # axis=1 表示按行汇总
+benchmark_many("F axis=0 列汇总", lambda: arr_f.sum(axis=0), number=3, repeat=5)  # axis=0 表示按列汇总
+benchmark_many("F axis=1 行汇总", lambda: arr_f.sum(axis=1), number=3, repeat=5)  # axis=1 表示按行汇总
+
+#任务3
+A = np.random.rand(5, 5)
+
+result = np.empty_like(A)  
+temp = np.empty_like(A) 
+
+np.multiply(A, A, out=result)    
+np.multiply(2, A, out=temp)      
+np.add(result, temp, out=result) 
+np.add(result, 1, out=result)    
+
+print(np.round(result, 3))  
